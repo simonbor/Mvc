@@ -4,7 +4,6 @@ using Microsoft.AspNet.Mvc.Razor;
 
 namespace MvcSubAreaSample.Web
 {
-    //TODO: Move to own file
     public class SubAreaViewLocationExpander : IViewLocationExpander
     {
         private const string _subAreaKey = "subarea";
@@ -15,11 +14,11 @@ namespace MvcSubAreaSample.Web
             if (context.Values.ContainsKey(_subAreaKey))
             {
                 var subArea = context.Values[_subAreaKey];
-                var subareaViewLocations = new string[] {
-                    "/Areas/{2}/Areas/" + subArea +"/Views/{1}/{0}.cshtml"
+                var subareaViewLocations = new string[]
+                {
+                    "/Areas/{2}/Areas/" + subArea + "/Views/{1}/{0}.cshtml"
                 };
                 viewLocations = subareaViewLocations.Concat(viewLocations);
-
             }
             return viewLocations;
         }
@@ -27,8 +26,7 @@ namespace MvcSubAreaSample.Web
         public void PopulateValues(ViewLocationExpanderContext context)
         {
             var subArea = context.ActionContext.ActionDescriptor.RouteConstraints.FirstOrDefault(
-                s => s.RouteKey == "subarea" && !string.IsNullOrEmpty(s.RouteValue)
-            );
+                s => s.RouteKey == "subarea" && !string.IsNullOrEmpty(s.RouteValue));
 
             if (subArea != null)
             {

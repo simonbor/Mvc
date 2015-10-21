@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Xunit;
-using MvcSubAreaSample.Web;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Routing;
+using Xunit;
 
 namespace MvcSubAreaSample.Web.Tests
 {
@@ -15,7 +13,7 @@ namespace MvcSubAreaSample.Web.Tests
         public async Task ExecuteResultAsync_SubAreaGivesCorrectRoute()
         {
             var actionDescriptor = CreateActionDescriptor("Menu", "Restaurant", "Home", "Index");
-
+            
             throw new NotImplementedException();
         }
 
