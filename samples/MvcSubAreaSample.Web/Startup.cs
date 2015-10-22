@@ -4,8 +4,9 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Framework.Configuration;
+using MvcSubAreaSample.Web;
 
-namespace MvcSubAreaSample.Web
+namespace MvcSubAreaSample
 {
     public class Startup
     {

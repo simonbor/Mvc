@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Builder.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace MvcSubAreaSample.Web.Tests
@@ -12,6 +14,11 @@ namespace MvcSubAreaSample.Web.Tests
         [Fact]
         public async Task ExecuteResultAsync_SubAreaGivesCorrectRoute()
         {
+            var startup = new Startup();
+            var serviceCollection = startup.ConfigureServices(new ServiceCollection());
+            var builder = new ApplicationBuilder(serviceCollection);
+            var requestDeligate = builder.Build();
+
             var actionDescriptor = CreateActionDescriptor("Menu", "Restaurant", "Home", "Index");
             
             throw new NotImplementedException();
