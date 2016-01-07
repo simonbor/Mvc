@@ -1,44 +1,17 @@
 {
-  "webroot": "wwwroot",
-  "userSecretsId": "aspnet5-MvcSubAreaSample.Web-0020fbd2-d3b4-4146-a82b-8675dd088088",
-  "version": "1.0.0-*",
-
-  "dependencies": {
-    "Microsoft.AspNet.Server.Kestrel": "1.0.0-*",
-    "Microsoft.AspNet.Diagnostics": "1.0.0-*",
-    "Microsoft.AspNet.Localization": "1.0.0-*",
-    "Microsoft.AspNet.Mvc": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-*",
-    "Microsoft.AspNet.Server.IIS": "1.0.0-*",
-    "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-    "Microsoft.AspNet.Session": "1.0.0-*",
-    "Microsoft.AspNet.StaticFiles": "1.0.0-*",
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
-    "xunit.runner.aspnet": "2.0.0-aspnet-*"
+  "compilationOptions": {
+    "emitEntryPoint": true
   },
-
   "commands": {
-    "web": "Microsoft.AspNet.Server.Kestrel",
-    "ef": "EntityFramework.Commands",
-    "test": "xunit.runner.aspnet"
+    "web": "MvcSubAreaSample.Web"
   },
-
+  "dependencies": {
+    "Microsoft.AspNet.Diagnostics": "1.0.0-*",
+    "Microsoft.AspNet.Mvc": "6.0.0-*",
+    "Microsoft.AspNet.Server.Kestrel": "1.0.0-*"
+  },
   "frameworks": {
     "dnx451": { },
     "dnxcore50": { }
-  },
-
-  "exclude": [
-    "wwwroot",
-    "node_modules"
-  ],
-  "publishExclude": [
-    "**.user",
-    "**.vspscc"
-  ],
-  "scripts": {
-    "prepublish": [ "npm install", "bower install", "gulp clean", "gulp min" ]
   }
 }

@@ -1,20 +1,17 @@
 ﻿using System;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Framework.Configuration;
-using MvcSubAreaSample.Web;
 
-namespace MvcSubAreaSample
+namespace MvcSubAreaSample.Web
 {
     public class Startup
     {
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddCaching();
-            services.AddSession();
-
             services.Configure<RazorViewEngineOptions>(options =>
             {
                 options.ViewLocationExpanders.Add(new SubAreaViewLocationExpander());
@@ -24,9 +21,7 @@ namespace MvcSubAreaSample
             {
                 //options.Filters.Add(typeof(PassThroughAttribute), order: 17);
                 options.Filters.Add(new FormatFilterAttribute());
-            })
-            .AddXmlDataContractSerializerFormatters()
-            .AddViewLocalization(LanguageViewLocationExpanderFormat.SubFolder);
+            });
 
             return services.BuildServiceProvider();
         }
@@ -36,13 +31,6 @@ namespace MvcSubAreaSample
         // Configure is called after ConfigureServices is called.
         public void Configure(IApplicationBuilder app)
         {
-            app.UseStatusCodePages();
-            app.UseDeveloperExceptionPage();
-            app.UseFileServer();
-
-            app.UseRequestLocalization();
-
-            app.UseSession();
             // Add MVC to the request pipeline.
             app.UseMvc(routes =>
             {
@@ -72,6 +60,16 @@ namespace MvcSubAreaSample
                     "{controller}",
                     new { controller = "Home" });
             });
+        }
+
+        public static void Main(string[] args)
+        {
+            var application = new WebApplicationBuilder()
+                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+                .UseStartup<Startup>()
+                .Build();
+
+            application.Run();
         }
     }
 }
