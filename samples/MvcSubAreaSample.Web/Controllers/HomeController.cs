@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace MvcSubAreaSample.Web.Controllers
+namespace MvcSubAreaSample.Web
 {
     public class HomeController : Controller
     {

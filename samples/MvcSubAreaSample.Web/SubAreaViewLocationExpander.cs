@@ -11,12 +11,13 @@ namespace MvcSubAreaSample.Web
     {
         private const string _subAreaKey = "subarea";
 
-        public IEnumerable<string> ExpandViewLocations(ViewLocationExpanderContext context,
+        public IEnumerable<string> ExpandViewLocations(
+            ViewLocationExpanderContext context,
             IEnumerable<string> viewLocations)
         {
             if (context.Values.ContainsKey(_subAreaKey))
             {
-                var subArea = context.Values[_subAreaKey];
+                var subArea = RazorViewEngine.GetNormalizedRouteValue(context.ActionContext, _subAreaKey);
                 var subareaViewLocations = new string[]
                 {
                     "/Areas/{2}/Areas/" + subArea + "/Views/{1}/{0}.cshtml"

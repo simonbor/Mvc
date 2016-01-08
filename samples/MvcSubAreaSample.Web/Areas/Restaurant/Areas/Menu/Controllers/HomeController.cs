@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace MvcSubAreaSample.Web.Areas.Menu.Controllers
+namespace MvcSubAreaSample.Web.Restaurant.Menu
 {
     [Area("Restaurant")]
     [SubArea("Menu")]

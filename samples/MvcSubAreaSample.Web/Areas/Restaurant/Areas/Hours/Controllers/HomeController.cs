@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace MvcSubAreaSample.Web.Areas.Restaurant.Hours.Controllers
+namespace MvcSubAreaSample.Web.Restaurant.Hours
 {
     [Area("Restaurant")]
     [SubArea("Hours")]
