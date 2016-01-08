@@ -40,5 +40,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Contains("9-5 M-F", content);
         }
+
+        [Fact]
+        public async Task SubArea_Home()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("/");
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("Areas", content);
+        }
     }
 }
