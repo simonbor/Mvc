@@ -14,7 +14,7 @@ namespace MvcSubAreaSample.Web
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentException("Area name must not be empty", nameof(name));
+                throw new ArgumentException("SubArea name must not be null or empty.", nameof(name));
             }
         }
     }
