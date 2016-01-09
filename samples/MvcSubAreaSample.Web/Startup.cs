@@ -37,8 +37,7 @@ namespace MvcSubAreaSample.Web
                         controller = "Home",
                         action = "Index"
                     });
-                routes.MapRoute("areaRoute", "{area:exists}/{controller}/{action}");
-                routes.MapRoute("areaBase", "{area:exists}",
+                routes.MapRoute("areaRoute", "{area:exists}/{controller}/{action}",
                     new
                     {
                         controller = "Home",
