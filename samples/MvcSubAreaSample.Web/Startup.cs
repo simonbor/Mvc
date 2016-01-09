@@ -48,10 +48,6 @@ namespace MvcSubAreaSample.Web
                     "controllerActionRoute",
                     "{controller}/{action}",
                     new { controller = "Home", action = "Index" });
-                routes.MapRoute(
-                    "controllerRoute",
-                    "{controller}",
-                    new { controller = "Home" });
             });
         }
 
