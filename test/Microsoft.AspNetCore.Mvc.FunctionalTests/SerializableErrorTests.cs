@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public HttpClient Client { get; }
 
-        public static TheoryData AcceptHeadersData
+        public static TheoryData<string> AcceptHeadersData
         {
             get
             {
@@ -62,13 +62,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             XmlAssert.Equal(expectedXml, responseData);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        // XmlSerializer test is disabled Mono.Xml2.XmlTextReader.ReadText is unable to read the XML.
-        // This is fixed in mono 4.3.0.
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
-        [InlineData("application/xml-xmlser")]
-        [InlineData("application/xml-dcs")]
+        [Theory]
+        [MemberData(nameof(AcceptHeadersData))]
         public async Task PostedSerializableError_IsBound(string acceptHeader)
         {
             // Arrange
@@ -90,12 +85,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        // XmlSerializer test is disabled Mono.Xml2.XmlTextReader.ReadText is unable to read the XML.
-        // This is fixed in mono 4.3.0.
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
-        [InlineData("application/xml-xmlser")]
-        [InlineData("application/xml-dcs")]
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono, SkipReason = "Mono.Xml2.XmlTextReader.ReadText unable to read this XML")]
+        [MemberData(nameof(AcceptHeadersData))]
         public async Task IsReturnedInExpectedFormat(string acceptHeader)
         {
             // Arrange
