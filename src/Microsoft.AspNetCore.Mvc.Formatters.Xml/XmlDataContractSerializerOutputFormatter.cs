@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
-using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
 {
@@ -72,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public XmlWriterSettings WriterSettings { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="DataContractSerializerSettings"/> used to configure the 
+        /// Gets or sets the <see cref="DataContractSerializerSettings"/> used to configure the
         /// <see cref="DataContractSerializer"/>.
         /// </summary>
         public DataContractSerializerSettings SerializerSettings
@@ -138,7 +136,21 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 FormattingUtilities.XsdDataContractExporter.GetRootElementName(type);
 #endif
                 // If the serializer does not support this type it will throw an exception.
-                return new DataContractSerializer(type, _serializerSettings);
+                return new DataContractSerializer(
+                    type,
+#if NET451
+                    _serializerSettings.RootName,
+                    _serializerSettings.RootNamespace,
+                    _serializerSettings.KnownTypes,
+                    _serializerSettings.MaxItemsInObjectGraph,
+                    _serializerSettings.IgnoreExtensionDataObject,
+                    _serializerSettings.PreserveObjectReferences,
+                    _serializerSettings.DataContractSurrogate,
+                    _serializerSettings.DataContractResolver
+#else
+                    _serializerSettings
+#endif
+                    );
             }
             catch (Exception)
             {
@@ -212,7 +224,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 }
 
                 // Perf: call FlushAsync to call WriteAsync on the stream with any content left in the TextWriter's
-                // buffers. This is better than just letting dispose handle it (which would result in a synchronous 
+                // buffers. This is better than just letting dispose handle it (which would result in a synchronous
                 // write).
                 await textWriter.FlushAsync();
             }

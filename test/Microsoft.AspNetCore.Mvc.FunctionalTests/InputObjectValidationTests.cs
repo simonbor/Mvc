@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Testing;
-using Microsoft.AspNetCore.Testing.xunit;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -45,9 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             }
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task CheckIfObjectIsDeserializedWithoutErrors()
         {
             // Arrange

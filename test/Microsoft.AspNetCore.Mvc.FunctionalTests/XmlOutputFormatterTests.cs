@@ -63,9 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 await response.Content.ReadAsStringAsync());
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task XmlSerializerFailsAndDataContractSerializerIsCalled()
         {
             // Arrange

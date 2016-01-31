@@ -12,7 +12,6 @@ using System.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
 using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
 {
@@ -181,7 +180,21 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             try
             {
                 // If the serializer does not support this type it will throw an exception.
-                return new DataContractSerializer(type, _serializerSettings);
+                return new DataContractSerializer(
+                    type,
+#if NET451
+                    _serializerSettings.RootName,
+                    _serializerSettings.RootNamespace,
+                    _serializerSettings.KnownTypes,
+                    _serializerSettings.MaxItemsInObjectGraph,
+                    _serializerSettings.IgnoreExtensionDataObject,
+                    _serializerSettings.PreserveObjectReferences,
+                    _serializerSettings.DataContractSurrogate,
+                    _serializerSettings.DataContractResolver
+#else
+                    _serializerSettings
+#endif
+                );
             }
             catch (Exception)
             {

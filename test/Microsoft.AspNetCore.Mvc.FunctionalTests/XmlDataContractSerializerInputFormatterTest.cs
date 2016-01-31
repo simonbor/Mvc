@@ -10,7 +10,6 @@ using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Testing.xunit;
 using XmlFormattersWebSite;
 using Xunit;
 
@@ -34,9 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public HttpClient Client { get; }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task ThrowsOnInvalidInput_AndAddsToModelState()
         {
             // Arrange
@@ -56,9 +53,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 data);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task RequiredDataIsProvided_AndModelIsBound_NoValidationErrors()
         {
             // Arrange
@@ -86,9 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         // Verifies that the model state has errors related to body model validation.
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task DataMissingForRefereneceTypeProperties_AndModelIsBound_AndHasMixedValidationErrors()
         {
             // Arrange

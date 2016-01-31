@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Testing.xunit;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -47,9 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(expectedBody, actualBody);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task SerializableErrorIsReturnedInExpectedFormat()
         {
             // Arrange
