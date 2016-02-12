@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -20,8 +21,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         public static readonly int DefaultMaxAllowedErrors = 200;
 
-        private readonly Dictionary<string, ModelStateEntry> _innerDictionary;
+        private static readonly char[] Delimiters = new char[] { '.', '[' };
+        
         private int _maxAllowedErrors;
+        private ModelStateNode _root;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelStateDictionary"/> class.
@@ -38,29 +41,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             MaxAllowedErrors = maxAllowedErrors;
 
-            _innerDictionary = new Dictionary<string, ModelStateEntry>(StringComparer.OrdinalIgnoreCase);
+            _root = new ModelStateNode(string.Empty);
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ModelStateDictionary"/> class by using values that are copied
-        /// from the specified <paramref name="dictionary"/>.
-        /// </summary>
-        /// <param name="dictionary">The <see cref="ModelStateDictionary"/> to copy values from.</param>
-        public ModelStateDictionary(ModelStateDictionary dictionary)
-        {
-            if (dictionary == null)
-            {
-                throw new ArgumentNullException(nameof(dictionary));
-            }
-
-            _innerDictionary = new Dictionary<string, ModelStateEntry>(
-                dictionary,
-                StringComparer.OrdinalIgnoreCase);
-
-            MaxAllowedErrors = dictionary.MaxAllowedErrors;
-            ErrorCount = dictionary.ErrorCount;
-            HasRecordedMaxModelError = dictionary.HasRecordedMaxModelError;
-        }
+        public ModelStateEntry Root => _root;
 
         /// <summary>
         /// Gets or sets the maximum allowed model state errors in this instance of <see cref="ModelStateDictionary"/>.
@@ -115,28 +99,29 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public int ErrorCount { get; private set; }
 
         /// <inheritdoc />
-        public int Count
-        {
-            get { return _innerDictionary.Count; }
-        }
+        public int Count { get; private set; }
 
         /// <inheritdoc />
         public bool IsReadOnly
         {
-            get { return ((ICollection<KeyValuePair<string, ModelStateEntry>>)_innerDictionary).IsReadOnly; }
+            get { return false; }
         }
 
-        /// <inheritdoc />
-        public ICollection<string> Keys
-        {
-            get { return _innerDictionary.Keys; }
-        }
+        /// <summary>
+        /// Gets the key collection.
+        /// </summary>
+        public KeyCollection Keys => new KeyCollection(this);
 
         /// <inheritdoc />
-        public ICollection<ModelStateEntry> Values
-        {
-            get { return _innerDictionary.Values; }
-        }
+        ICollection<string> IDictionary<string, ModelStateEntry>.Keys => Keys;
+
+        /// <summary>
+        /// Gets the value collection.
+        /// </summary>
+        public ValueCollection Values => new ValueCollection(this);
+
+        /// <inheritdoc />
+        ICollection<ModelStateEntry> IDictionary<string, ModelStateEntry>.Values => Values;
 
         /// <summary>
         /// Gets a value that indicates whether any model state values in this model state dictionary is invalid or not validated.
@@ -169,9 +154,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     throw new ArgumentNullException(nameof(key));
                 }
 
-                ModelStateEntry value;
-                _innerDictionary.TryGetValue(key, out value);
-                return value;
+                var entry = Find(key);
+                return entry;
             }
             set
             {
@@ -184,14 +168,26 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
+
                 _innerDictionary[key] = value;
             }
         }
 
-        // For unit testing
-        internal IDictionary<string, ModelStateEntry> InnerDictionary
+        private ModelStateNode Find(string key)
         {
-            get { return _innerDictionary; }
+            if (key.Length == 0)
+            {
+                return _root;
+            }
+
+            var start = 0;
+            int index;
+            while ((index = key.IndexOfAny(Delimiters, start)) > -1)
+            {
+
+            }
+
+            return null;
         }
 
         // Flag that indiciates if TooManyModelErrorException has already been added to this dictionary.
@@ -741,6 +737,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return new PrefixEnumerable(this, prefix);
         }
 
+        private class ModelStateNode : ModelStateEntry
+        {
+            public ModelStateNode(string key)
+            {
+                Debug.Assert(key != null);
+                Key = key;
+            }
+
+            public List<ModelStateNode> Children { get; set; }
+
+            public bool IsVisible { get; set; }
+
+            public string Key { get; set; }
+        }
+
         public struct PrefixEnumerable : IEnumerable<KeyValuePair<string, ModelStateEntry>>
         {
             private readonly ModelStateDictionary _dictionary;
@@ -898,6 +909,236 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 NotFound,
                 Found,
                 ReferenceSet
+            }
+        }
+
+        public struct KeyCollection : ICollection<string>
+        {
+            private readonly ModelStateDictionary _dictionary;
+
+            public KeyCollection(ModelStateDictionary dictionary)
+            {
+                _dictionary = dictionary;
+            }
+
+            public int Count => _dictionary.Count;
+
+            public bool IsReadOnly => true;
+
+            public void Add(string item)
+            {
+                throw new NotSupportedException();
+            }
+
+            public void Clear()
+            {
+                throw new NotSupportedException();
+            }
+
+            public bool Contains(string item)
+            {
+                if (item == null)
+                {
+                    return false;
+                }
+
+                foreach (var existingItem in this)
+                {
+                    if (existingItem.Equals(item))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            public void CopyTo(string[] array, int arrayIndex)
+            {
+                if (array == null)
+                {
+                    throw new ArgumentNullException(nameof(array));
+                }
+
+                if (arrayIndex < 0 || arrayIndex + Count >= array.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+                }
+
+                foreach (var item in this)
+                {
+                    array[arrayIndex++] = item;
+                }
+            }
+
+            public IEnumerator<string> GetEnumerator()
+            {
+                return new KeyEnumerator(_dictionary);
+            }
+
+            public bool Remove(string item)
+            {
+                throw new NotSupportedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new KeyEnumerator(_dictionary);
+            }
+        }
+
+        public struct KeyEnumerator : IEnumerator<string>
+        {
+            private readonly ModelStateDictionary _dictionary;
+
+            public KeyEnumerator(ModelStateDictionary dictionary)
+            {
+                _dictionary = dictionary;
+            }
+
+            public string Current
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Reset()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public struct ValueCollection : ICollection<ModelStateEntry>
+        {
+            private readonly ModelStateDictionary _dictionary;
+
+            public ValueCollection(ModelStateDictionary dictionary)
+            {
+                _dictionary = dictionary;
+            }
+
+            public int Count => _dictionary.Count;
+
+            public bool IsReadOnly => true;
+
+            public void Add(ModelStateEntry item)
+            {
+                throw new NotSupportedException();
+            }
+
+            public void Clear()
+            {
+                throw new NotSupportedException();
+            }
+
+            public bool Contains(ModelStateEntry item)
+            {
+                if (item == null)
+                {
+                    return false;
+                }
+
+                foreach (var existingItem in this)
+                {
+                    if (existingItem.Equals(item))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            public void CopyTo(ModelStateEntry[] array, int arrayIndex)
+            {
+                if (array == null)
+                {
+                    throw new ArgumentNullException(nameof(array));
+                }
+
+                if (arrayIndex < 0 || arrayIndex + Count >= array.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+                }
+
+                foreach (var item in this)
+                {
+                    array[arrayIndex++] = item;
+                }
+            }
+
+            public IEnumerator<ModelStateEntry> GetEnumerator()
+            {
+                return new ValueEnumerator(_dictionary);
+            }
+
+            public bool Remove(ModelStateEntry item)
+            {
+                throw new NotSupportedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new ValueEnumerator(_dictionary);
+            }
+        }
+
+        public struct ValueEnumerator : IEnumerator<ModelStateEntry>
+        {
+            private readonly ModelStateDictionary _dictionary;
+
+            public ValueEnumerator(ModelStateDictionary dictionary)
+            {
+                _dictionary = dictionary;
+            }
+
+            public ModelStateEntry Current
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Reset()
+            {
+                throw new NotImplementedException();
             }
         }
     }

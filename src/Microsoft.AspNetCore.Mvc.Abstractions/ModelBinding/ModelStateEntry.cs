@@ -3,10 +3,7 @@
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
-    /// <summary>
-    /// An entry in a <see cref="ModelStateDictionary"/>.
-    /// </summary>
-    public class ModelStateEntry
+    public abstract class ModelStateEntry
     {
         /// <summary>
         /// Gets the raw value from the request associated with this entry.
