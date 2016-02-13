@@ -113,22 +113,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void WriteTo_WritesSelf_WhenWriterIsHtmlTextWriter()
-        {
-            // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
-            var htmlWriter = new Mock<HtmlTextWriter>();
-            htmlWriter.Setup(w => w.Write(buffer)).Verifiable();
-
-            // Act
-            buffer.Append("Hello world");
-            buffer.WriteTo(htmlWriter.Object, new HtmlTestEncoder());
-
-            // Assert
-            htmlWriter.Verify();
-        }
-
-        [Fact]
         public void WriteTo_WritesRazorValues_ToTextWriter()
         {
             // Arrange
@@ -166,22 +150,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Assert
             Assert.Equal(expected, writer.ToString());
-        }
-
-        [Fact]
-        public async Task WriteToAsync_WritesSelf_WhenWriterIsHtmlTextWriter()
-        {
-            // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
-            var htmlWriter = new Mock<HtmlTextWriter>();
-            htmlWriter.Setup(w => w.Write(buffer)).Verifiable();
-
-            // Act
-            buffer.Append("Hello world");
-            await buffer.WriteToAsync(htmlWriter.Object, new HtmlTestEncoder());
-
-            // Assert
-            htmlWriter.Verify();
         }
 
         [Fact]

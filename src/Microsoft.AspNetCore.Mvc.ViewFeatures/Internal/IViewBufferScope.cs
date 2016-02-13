@@ -13,8 +13,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <summary>
         /// Gets a <see cref="ViewBufferValue[]"/>.
         /// </summary>
+        /// <param name="size">The minimum size of the returned segment.</param>
         /// <returns>The <see cref="ViewBufferValue[]"/>.</returns>
-        ViewBufferValue[] GetSegment();
+        ViewBufferValue[] GetSegment(int size);
 
         /// <summary>
         /// Returns a <see cref="ViewBufferValue[]"/> that can be reused.

@@ -177,6 +177,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return this;
             }
 
+            public void CopyTo(IHtmlContentBuilder destination)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void MoveTo(IHtmlContentBuilder destination)
+            {
+                throw new NotImplementedException();
+            }
+
             public void WriteTo(TextWriter writer, HtmlEncoder encoder)
             {
                 throw new NotSupportedException();

@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     /// </summary>
     public class MemoryPoolViewBufferScope : IViewBufferScope, IDisposable
     {
-        public static readonly int SegmentSize = 512;
+        public static readonly int MinimumSize = 16;
         private readonly ArrayPool<ViewBufferValue> _viewBufferPool;
         private readonly ArrayPool<char> _charPool;
         private List<ViewBufferValue[]> _available;
@@ -36,8 +36,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
-        public ViewBufferValue[] GetSegment()
+        public ViewBufferValue[] GetSegment(int size)
         {
+            if (size <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(size));
+            }
+
             if (_disposed)
             {
                 throw new ObjectDisposedException(typeof(MemoryPoolViewBufferScope).FullName);
@@ -60,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             try
             {
-                segment = _viewBufferPool.Rent(SegmentSize);
+                segment = _viewBufferPool.Rent(Math.Max(size, MinimumSize));
                 _leased.Add(segment);
             }
             catch when (segment != null)

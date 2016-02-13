@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private bool _renderedBody;
         private AttributeInfo _attributeInfo;
         private TagHelperAttributeInfo _tagHelperAttributeInfo;
-        private HtmlContentWrapperTextWriter _valueBuffer;
+        private StringWriter _valueBuffer;
         private IViewBufferScope _bufferScope;
 
         public RazorPage()
@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             // We need to replace the ViewContext's Writer to ensure that all content (including content written
             // from HTML helpers) is redirected.
-            var buffer = new ViewBuffer(BufferScope, Path);
+            var buffer = new ViewBuffer(BufferScope, Path, pageSize: 16);
             var writer = new HtmlContentWrapperTextWriter(buffer, ViewContext.Writer.Encoding);
             ViewContext.Writer = writer;
         }
@@ -316,18 +316,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             var htmlContent = value as IHtmlContent;
             if (htmlContent != null)
             {
-                var htmlTextWriter = writer as HtmlTextWriter;
-                if (htmlTextWriter == null)
-                {
-                    htmlContent.WriteTo(writer, encoder);
-                }
-                else
-                {
-                    // This special case allows us to keep buffering as IHtmlContent until we get to the 'final'
-                    // TextWriter.
-                    htmlTextWriter.Write(htmlContent);
-                }
-
+                writer.Write(value);
                 return;
             }
 
@@ -353,7 +342,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             if (!string.IsNullOrEmpty(value))
             {
-                encoder.Encode(writer, value);
+                var encoded = encoder.Encode(value);
+                writer.Write(encoded);
             }
         }
 
@@ -568,8 +558,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             {
                 if (_valueBuffer == null)
                 {
-                    var buffer = new ViewBuffer(BufferScope, Path);
-                    _valueBuffer = new HtmlContentWrapperTextWriter(buffer, Output.Encoding);
+                    _valueBuffer = new StringWriter();
                 }
 
                 if (!string.IsNullOrEmpty(prefix))
@@ -585,10 +574,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             if (!_tagHelperAttributeInfo.Suppressed)
             {
-                executionContext.AddHtmlAttribute(
-                    _tagHelperAttributeInfo.Name,
-                    (IHtmlContent)_valueBuffer?.ContentBuilder ?? HtmlString.Empty);
-                _valueBuffer = null;
+                var content = _valueBuffer == null ? HtmlString.Empty : new HtmlString(_valueBuffer.ToString());
+                executionContext.AddHtmlAttribute(_tagHelperAttributeInfo.Name, content);
+                _valueBuffer.GetStringBuilder().Clear();
             }
         }
 

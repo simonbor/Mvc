@@ -99,18 +99,27 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             _bufferScope = context.HttpContext.RequestServices.GetRequiredService<IViewBufferScope>();
-            var bodyWriter = await RenderPageAsync(RazorPage, context, invokeViewStarts: true);
+            var bodyWriter = await RenderPageContentAsync(RazorPage, context, invokeViewStarts: true);
             await RenderLayoutAsync(context, bodyWriter);
         }
 
-        private async Task<RazorTextWriter> RenderPageAsync(
+        private async Task<RazorTextWriter> RenderPageContentAsync(
             IRazorPage page,
             ViewContext context,
             bool invokeViewStarts)
         {
-            Debug.Assert(_bufferScope != null);
-            var buffer = new ViewBuffer(_bufferScope, page.Path);
-            var razorTextWriter = new RazorTextWriter(context.Writer, buffer, _htmlEncoder);
+            RazorTextWriter razorTextWriter;
+            if (context.Writer is HtmlContentWrapperTextWriter)
+            {
+                razorTextWriter = new RazorTextWriter((HtmlContentWrapperTextWriter)context.Writer, _htmlEncoder);
+            }
+            else
+            {
+                Debug.Assert(_bufferScope != null);
+
+                var buffer = new ViewBuffer(_bufferScope, page.Path, pageSize: 256);
+                razorTextWriter = new RazorTextWriter(context.Writer, buffer, _htmlEncoder);
+            }
 
             // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
             // and ViewComponents to reference it.
@@ -219,7 +228,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 previousPage.IsLayoutBeingRendered = true;
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
                 layoutPage.BodyContent = bodyWriter.Buffer;
-                bodyWriter = await RenderPageAsync(layoutPage, context, invokeViewStarts: false);
+                bodyWriter = await RenderPageContentAsync(layoutPage, context, invokeViewStarts: false);
 
                 renderedLayouts.Add(layoutPage);
                 previousPage = layoutPage;
@@ -233,6 +242,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             if (bodyWriter.IsBuffering)
             {
+                if (context.Writer is HtmlContentWrapperTextWriter)
+                {
+                    bodyWriter.Buffer.MoveTo(((HtmlContentWrapperTextWriter)context.Writer).ContentBuilder);
+                    return;
+                }
+
                 // Only copy buffered content to the Output if we're currently buffering.
                 using (var writer = _bufferScope.CreateWriter(context.Writer))
                 {

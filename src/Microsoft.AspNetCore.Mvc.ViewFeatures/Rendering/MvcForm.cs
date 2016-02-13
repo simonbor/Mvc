@@ -2,10 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Text.Encodings.Web;
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Mvc.Rendering
 {
@@ -66,24 +63,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             if (formContext.HasEndOfFormContent)
             {
                 var writer = _viewContext.Writer;
-                var htmlWriter = writer as HtmlTextWriter;
-
-                HtmlEncoder htmlEncoder = null;
-                if (htmlWriter == null)
-                {
-                    htmlEncoder = _viewContext.HttpContext.RequestServices.GetRequiredService<HtmlEncoder>();
-                }
-
                 foreach (var content in formContext.EndOfFormContent)
                 {
-                    if (htmlWriter == null)
-                    {
-                        content.WriteTo(writer, htmlEncoder);
-                    }
-                    else
-                    {
-                        htmlWriter.Write(content);
-                    }
+                    writer.Write(content);
                 }
             }
         }

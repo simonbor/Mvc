@@ -12,12 +12,16 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 namespace Microsoft.AspNetCore.Mvc.Razor
 {
     /// <summary>
-    /// An <see cref="HtmlTextWriter"/> that is backed by a unbuffered writer (over the Response stream) and a buffered
-    /// <see cref="IHtmlContentBuilder"/>. When <c>Flush</c> or <c>FlushAsync</c> is invoked, the writer
-    /// copies all content from the buffered writer to the unbuffered one and switches to writing to the unbuffered
-    /// writer for all further write operations.
+    /// <para>
+    /// A <see cref="TextWriter"/> that is backed by a unbuffered writer (over the Response stream) and/or a 
+    /// <see cref="ViewBuffer"/>
+    /// </para>
+    /// <para>
+    /// When <c>Flush</c> or <c>FlushAsync</c> is invoked, the writer copies all content from the buffer to
+    /// the writer and switches to writing to the unbuffered writer for all further write operations.
+    /// </para>
     /// </summary>
-    public class RazorTextWriter : HtmlTextWriter
+    public class RazorTextWriter : TextWriter
     {
         /// <summary>
         /// Creates a new instance of <see cref="RazorTextWriter"/>.
@@ -36,6 +40,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             TargetWriter = BufferedWriter;
         }
 
+        public RazorTextWriter(HtmlContentWrapperTextWriter writer, HtmlEncoder encoder)
+        {
+            BufferedWriter = writer;
+            Buffer = writer.ContentBuilder;
+            HtmlEncoder = encoder;
+
+            TargetWriter = BufferedWriter;
+            UnbufferedWriter = writer;
+        }
+
         /// <inheritdoc />
         public override Encoding Encoding
         {
@@ -51,11 +65,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public ViewBuffer Buffer { get; }
 
         // Internal for unit testing
-        internal HtmlContentWrapperTextWriter BufferedWriter { get; }
+        public HtmlContentWrapperTextWriter BufferedWriter { get; }
 
-        private TextWriter UnbufferedWriter { get; }
+        public TextWriter UnbufferedWriter { get; }
 
-        private TextWriter TargetWriter { get; set; }
+        public TextWriter TargetWriter { get; set; }
 
         private HtmlEncoder HtmlEncoder { get; }
 
@@ -96,11 +110,54 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public override void Write(IHtmlContent value)
+        public override void Write(object value)
         {
-            // Perf: We don't special case 'TargetWriter is HtmlTextWriter' here, because want to delegate to the 
-            // IHtmlContent if it wants to 'flatten' itself or not. This is an important optimization for TagHelpers.
-            value.WriteTo(TargetWriter, HtmlEncoder);
+            IHtmlContentBuilder builder;
+            IHtmlContent content;
+            if ((builder = value as IHtmlContentBuilder) != null)
+            {
+                Write(builder);
+            }
+            else if ((content = value as IHtmlContent) != null)
+            {
+                Write(content);
+            }
+            else
+            {
+                base.Write(value);
+            }
+        }
+
+        /// <summary>
+        /// Writes an <see cref="IHtmlContent"/> value.
+        /// </summary>
+        /// <param name="value">The <see cref="IHtmlContent"/> value.</param>
+        public void Write(IHtmlContent value)
+        {
+            if (IsBuffering)
+            {
+                Buffer.AppendHtml(value);
+            }
+            else
+            {
+                value.WriteTo(TargetWriter, HtmlEncoder);
+            }
+        }
+
+        /// <summary>
+        /// Writes an <see cref="IHtmlContentBuilder"/> value.
+        /// </summary>
+        /// <param name="value">The <see cref="IHtmlContentBuilder"/> value.</param>
+        public void Write(IHtmlContentBuilder value)
+        {
+            if (IsBuffering)
+            {
+                value.MoveTo(Buffer);
+            }
+            else
+            {
+                value.WriteTo(TargetWriter, HtmlEncoder);
+            }
         }
 
         /// <inheritdoc />

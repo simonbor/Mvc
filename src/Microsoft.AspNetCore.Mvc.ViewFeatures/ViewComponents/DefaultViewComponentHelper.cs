@@ -134,7 +134,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             ViewComponentDescriptor descriptor,
             object arguments)
         {
-            var viewBuffer = new ViewBuffer(_viewBufferScope, descriptor.FullName);
+            var viewBuffer = new ViewBuffer(_viewBufferScope, descriptor.FullName, pageSize: 32);
             using (var writer = new HtmlContentWrapperTextWriter(viewBuffer, _viewContext.Writer.Encoding))
             {
                 var context = new ViewComponentContext(

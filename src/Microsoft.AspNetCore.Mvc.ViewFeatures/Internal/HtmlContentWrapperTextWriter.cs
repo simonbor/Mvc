@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
@@ -10,9 +11,9 @@ using Microsoft.AspNetCore.Mvc.Internal;
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
     /// <summary>
-    /// <see cref="HtmlTextWriter"/> implementation which writes to an <see cref="IHtmlContentBuilder"/> instance.
+    /// A <see cref="TextWriter"/> implementation which writes to an <see cref="IHtmlContentBuilder"/> instance.
     /// </summary>
-    public class HtmlContentWrapperTextWriter : HtmlTextWriter
+    public class HtmlContentWrapperTextWriter : TextWriter
     {
         private const int MaxCharToStringLength = 1024;
 
@@ -21,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// </summary>
         /// <param name="contentBuilder">The <see cref="IHtmlContentBuilder"/> to write to.</param>
         /// <param name="encoding">The <see cref="System.Text.Encoding"/> in which output is written.</param>
-        public HtmlContentWrapperTextWriter(IHtmlContentBuilder contentBuilder, Encoding encoding)
+        public HtmlContentWrapperTextWriter(ViewBuffer contentBuilder, Encoding encoding)
         {
             if (contentBuilder == null)
             {
@@ -40,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <summary>
         /// The <see cref="IHtmlContentBuilder"/> this <see cref="HtmlContentWrapperTextWriter"/> writes to.
         /// </summary>
-        public IHtmlContentBuilder ContentBuilder { get; }
+        public ViewBuffer ContentBuilder { get; }
 
         /// <inheritdoc />
         public override Encoding Encoding { get; }
@@ -92,18 +93,44 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return;
             }
 
-            ContentBuilder.Append(value);
+            ContentBuilder.AppendHtml(value);
         }
 
         /// <inheritdoc />
-        public override void Write(IHtmlContent value)
+        public override void Write(object value)
         {
-            if (value == null)
+            IHtmlContentBuilder builder;
+            IHtmlContent content;
+            if ((builder = value as IHtmlContentBuilder) != null)
             {
-                throw new ArgumentNullException(nameof(value));
+                Write(builder);
             }
+            else if ((content = value as IHtmlContent) != null)
+            {
+                Write(content);
+            }
+            else
+            {
+                base.Write(value);
+            }
+        }
 
+        /// <summary>
+        /// Writes an <see cref="IHtmlContent"/> value.
+        /// </summary>
+        /// <param name="value">The <see cref="IHtmlContent"/> value.</param>
+        public void Write(IHtmlContent value)
+        {
             ContentBuilder.AppendHtml(value);
+        }
+
+        /// <summary>
+        /// Writes an <see cref="IHtmlContentBuilder"/> value.
+        /// </summary>
+        /// <param name="value">The <see cref="IHtmlContentBuilder"/> value.</param>
+        public void Write(IHtmlContentBuilder value)
+        {
+            value.MoveTo(ContentBuilder);
         }
 
         /// <inheritdoc />

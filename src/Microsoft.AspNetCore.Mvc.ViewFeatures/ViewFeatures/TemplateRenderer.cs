@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
                 if (viewEngineResult.Success)
                 {
-                    var viewBuffer = new ViewBuffer(_bufferScope, viewName);
+                    var viewBuffer = new ViewBuffer(_bufferScope, viewName, pageSize: 32);
                     using (var writer = new HtmlContentWrapperTextWriter(viewBuffer, _viewContext.Writer.Encoding))
                     {
                         // Forcing synchronous behavior so users don't have to await templates.
