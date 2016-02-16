@@ -24,7 +24,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
         }
 
-        public static void ConfigureMvc(MvcOptions options, IHttpRequestStreamReaderFactory readerFactory)
+        public static void ConfigureMvc(
+            MvcOptions options,
+            IHttpRequestStreamReaderFactory readerFactory)
         {
             // Set up default error messages
             var messageProvider = options.ModelBindingMessageProvider;
@@ -37,17 +39,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             messageProvider.ValueMustBeANumberAccessor = Resources.FormatHtmlGeneration_ValueMustBeNumber;
 
             // Set up ModelBinding
-            options.ModelBinders.Add(new BinderTypeBasedModelBinder());
-            options.ModelBinders.Add(new ServicesModelBinder());
-            options.ModelBinders.Add(new BodyModelBinder(readerFactory));
-            options.ModelBinders.Add(new HeaderModelBinder());
-            options.ModelBinders.Add(new SimpleTypeModelBinder());
-            options.ModelBinders.Add(new CancellationTokenModelBinder());
-            options.ModelBinders.Add(new ByteArrayModelBinder());
-            options.ModelBinders.Add(new FormFileModelBinder());
-            options.ModelBinders.Add(new FormCollectionModelBinder());
-            options.ModelBinders.Add(new GenericModelBinder());
-            options.ModelBinders.Add(new MutableObjectModelBinder());
+            //options.ModelBinders.Add(new BinderTypeBasedModelBinder());
+            //options.ModelBinders.Add(new ServicesModelBinder());
+            //options.ModelBinders.Add(new BodyModelBinder(readerFactory));
+            //options.ModelBinders.Add(new HeaderModelBinder());
+            //options.ModelBinders.Add(new SimpleTypeModelBinder());
+            //options.ModelBinders.Add(new CancellationTokenModelBinder());
+            //options.ModelBinders.Add(new ByteArrayModelBinder());
+            //options.ModelBinders.Add(new FormFileModelBinder());
+            //options.ModelBinders.Add(new FormCollectionModelBinder());
+            //options.ModelBinders.Add(new GenericModelBinder());
+            //options.ModelBinders.Add(new MutableObjectModelBinder());
+            options.ModelBinders.Add(new HackedModelBinder());
+
+            options.ModelBroFactory.Add(new BinderTypeModelBroFactory());
+            options.ModelBroFactory.Add(new ServicesModelBroFactory());
+            options.ModelBroFactory.Add(new BodyModelBroFactory(readerFactory));
+            options.ModelBroFactory.Add(new HeaderModelBroFactory());
+            options.ModelBroFactory.Add(new SimpleTypeModelBroFactory());
 
             // Set up filters
             options.Filters.Add(new UnsupportedContentTypeFilter());

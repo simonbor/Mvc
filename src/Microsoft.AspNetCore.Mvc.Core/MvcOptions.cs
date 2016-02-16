@@ -85,6 +85,8 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         public IList<IModelBinder> ModelBinders { get; }
 
+        public IList<IModelBroFactory> ModelBroFactory {get; }
+
         /// <summary>
         /// Gets the default <see cref="IModelBindingMessageProvider"/>. Changes here are copied to the
         /// <see cref="ModelMetadata.ModelBindingMessageProvider"/> property of all <see cref="ModelMetadata"/>
