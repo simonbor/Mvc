@@ -162,12 +162,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             viewData["StringProperty"] = "ViewDataValue";
             viewData.TemplateInfo.HtmlFieldPrefix = "FieldPrefix";
 
-            var modelState = new ModelStateEntry();
+            var modelState = new TestModelStateEntry();
             modelState.AttemptedValue = "StringPropertyAttemptedValue";
             modelState.RawValue = new string[] { "StringPropertyRawValue" };
             viewData.ModelState["FieldPrefix.StringProperty"] = modelState;
 
-            modelState = new ModelStateEntry();
+            modelState = new TestModelStateEntry();
             modelState.AttemptedValue = "ModelAttemptedValue";
             modelState.RawValue = new string[] { "ModelRawValue" };
             viewData.ModelState["FieldPrefix"] = modelState;
@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewData = helper.ViewData;
             viewData["StringProperty"] = "ViewDataValue <\"\">";
 
-            var modelState = new ModelStateEntry();
+            var modelState = new TestModelStateEntry();
             modelState.AttemptedValue = "ObjectPropertyAttemptedValue <\"\">";
             modelState.RawValue = new string[] { "ObjectPropertyRawValue <\"\">" };
             viewData.ModelState["ObjectProperty"] = modelState;

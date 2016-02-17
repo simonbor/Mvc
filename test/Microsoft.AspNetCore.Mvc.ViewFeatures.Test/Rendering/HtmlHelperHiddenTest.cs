@@ -926,7 +926,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
         private static ModelStateEntry GetModelStateEntry(string value)
         {
-            return new ModelStateEntry
+            return new TestModelStateEntry
             {
                 RawValue = new string[] { value },
                 AttemptedValue = value,

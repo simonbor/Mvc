@@ -109,15 +109,15 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     "<li>HtmlEncode[[This is an error for Property3.]]</li>" + Environment.NewLine +
                     "</ul></div>";
                 var divWithAllErrors = "<div class=\"HtmlEncode[[validation-summary-errors]]\" data-valmsg-summary=\"HtmlEncode[[true]]\"><ul>" +
-                    "<li>HtmlEncode[[This is an error for Property3.Property2.]]</li>" + Environment.NewLine +
-                    "<li>HtmlEncode[[This is an error for Property3.OrderedProperty3.]]</li>" + Environment.NewLine +
-                    "<li>HtmlEncode[[This is an error for Property3.OrderedProperty2.]]</li>" + Environment.NewLine +
-                    "<li>HtmlEncode[[This is an error for Property3.]]</li>" + Environment.NewLine +
+                    "<li>HtmlEncode[[This is an error for the model root.]]</li>" + Environment.NewLine +
+                    "<li>HtmlEncode[[This is another error for the model root.]]</li>" + Environment.NewLine +
                     "<li>HtmlEncode[[This is an error for Property2.]]</li>" + Environment.NewLine +
                     "<li>HtmlEncode[[This is another error for Property2.]]</li>" + Environment.NewLine +
                     "<li>HtmlEncode[[The value '' is not valid for Property2.]]</li>" + Environment.NewLine +
-                    "<li>HtmlEncode[[This is an error for the model root.]]</li>" + Environment.NewLine +
-                    "<li>HtmlEncode[[This is another error for the model root.]]</li>" + Environment.NewLine +
+                    "<li>HtmlEncode[[This is an error for Property3.]]</li>" + Environment.NewLine +
+                    "<li>HtmlEncode[[This is an error for Property3.OrderedProperty2.]]</li>" + Environment.NewLine +
+                    "<li>HtmlEncode[[This is an error for Property3.OrderedProperty3.]]</li>" + Environment.NewLine +
+                    "<li>HtmlEncode[[This is an error for Property3.Property2.]]</li>" + Environment.NewLine +
                     "</ul></div>";
 
                 return new TheoryData<bool, string, string>
@@ -307,16 +307,16 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var expected = "<div class=\"HtmlEncode[[validation-summary-errors]]\" data-valmsg-summary=\"HtmlEncode[[true]]\"><ul>" +
-                "<li>HtmlEncode[[This is an error for OrderedProperty3.]]</li>" + Environment.NewLine +
+                "<li>HtmlEncode[[This is an error for OrderedProperty1.]]</li>" + Environment.NewLine +
                 "<li>HtmlEncode[[This is an error for OrderedProperty2.]]</li>" + Environment.NewLine +
                 "<li>HtmlEncode[[This is another error for OrderedProperty2.]]</li>" + Environment.NewLine +
                 "<li>HtmlEncode[[This is yet-another error for OrderedProperty2.]]</li>" + Environment.NewLine +
-                "<li>HtmlEncode[[This is an error for OrderedProperty1.]]</li>" + Environment.NewLine +
-                "<li>HtmlEncode[[This is an error for Property3.]]</li>" + Environment.NewLine +
-                "<li>HtmlEncode[[This is an error for Property2.]]</li>" + Environment.NewLine +
-                "<li>HtmlEncode[[This is another error for Property2.]]</li>" + Environment.NewLine +
+                "<li>HtmlEncode[[This is an error for OrderedProperty3.]]</li>" + Environment.NewLine +
                 "<li>HtmlEncode[[This is an error for Property1.]]</li>" + Environment.NewLine +
                 "<li>HtmlEncode[[This is another error for Property1.]]</li>" + Environment.NewLine +
+                "<li>HtmlEncode[[This is an error for Property2.]]</li>" + Environment.NewLine +
+                "<li>HtmlEncode[[This is another error for Property2.]]</li>" + Environment.NewLine +
+                "<li>HtmlEncode[[This is an error for Property3.]]</li>" + Environment.NewLine +
                 "<li>HtmlEncode[[This is an error for LastProperty.]]</li>" + Environment.NewLine +
                 "</ul></div>";
 

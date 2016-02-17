@@ -36,7 +36,7 @@ namespace System.Web.Http.Dispatcher
                 yield return new[] { new HttpError(
                     new ModelStateDictionary()
                     {
-                        { "key", new ModelStateEntry { Errors = { new ModelError("error") } } }
+                        { "key", new TestModelStateEntry { Errors = { new ModelError("error") } } }
                     },
                     true) };
             }
@@ -247,7 +247,7 @@ namespace System.Web.Http.Dispatcher
         }
 
         [Theory]
-        [MemberData("ErrorKeyValue")]
+        [MemberData(nameof(ErrorKeyValue))]
         public void HttpErrorStringProperties_UseCorrectHttpErrorKey(HttpError httpError, Func<string> productUnderTest, string key, string actualValue)
         {
             // Arrange
@@ -289,7 +289,7 @@ namespace System.Web.Http.Dispatcher
         }
 
         [Theory]
-        [MemberData("HttpErrors")]
+        [MemberData(nameof(HttpErrors))]
         public void HttpErrors_UseCaseInsensitiveComparer(HttpError httpError)
         {
             // Arrange
@@ -301,6 +301,10 @@ namespace System.Web.Http.Dispatcher
             // Act & Assert
             Assert.True(httpError.ContainsKey(lowercaseKey));
             Assert.True(httpError.ContainsKey(uppercaseKey));
+        }
+
+        private class TestModelStateEntry : ModelStateEntry
+        {
         }
     }
 }

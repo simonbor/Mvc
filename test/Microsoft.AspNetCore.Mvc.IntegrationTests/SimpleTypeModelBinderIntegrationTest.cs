@@ -512,7 +512,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelState = operationContext.ActionContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ??
+                default(ModelBindingResult);
 
             // Assert
             // ModelBindingResult
@@ -529,7 +530,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             // ModelState
             Assert.True(modelState.IsValid);
 
-            Assert.Equal(new[] { "Address.Lines", "Address.Zip", "Name" }, modelState.Keys.ToArray());
+            Assert.Equal(new[] { "Name", "Address.Lines", "Address.Zip", }, modelState.Keys.ToArray());
             var entry = modelState["Address.Lines"];
             Assert.NotNull(entry);
             Assert.Empty(entry.Errors);

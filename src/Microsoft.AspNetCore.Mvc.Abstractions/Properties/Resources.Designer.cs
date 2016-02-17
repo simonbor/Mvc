@@ -282,6 +282,22 @@ namespace Microsoft.AspNetCore.Mvc.Abstractions
             return string.Format(CultureInfo.CurrentCulture, GetString("BindingSource_MustBeGreedy"), p0, p1);
         }
 
+        /// <summary>
+        /// An item with the same key has already been added.
+        /// </summary>
+        internal static string ModelStateDictionary_DuplicateKey
+        {
+            get { return GetString("ModelStateDictionary_DuplicateKey"); }
+        }
+
+        /// <summary>
+        /// An item with the same key has already been added.
+        /// </summary>
+        internal static string FormatModelStateDictionary_DuplicateKey()
+        {
+            return GetString("ModelStateDictionary_DuplicateKey");
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
