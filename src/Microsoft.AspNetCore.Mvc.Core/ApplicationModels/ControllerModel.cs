@@ -35,12 +35,11 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             Actions = new List<ActionModel>();
             ApiExplorer = new ApiExplorerModel();
             Attributes = new List<object>(attributes);
-            AttributeRoutes = new List<AttributeRouteModel>();
-            ActionConstraints = new List<IActionConstraintMetadata>();
-            Filters = new List<IFilterMetadata>();
-            RouteConstraints = new List<IRouteConstraintProvider>();
-            Properties = new Dictionary<object, object>();
             ControllerProperties = new List<PropertyModel>();
+            Filters = new List<IFilterMetadata>();
+            Properties = new Dictionary<object, object>();
+            RouteConstraints = new List<IRouteConstraintProvider>();
+            Selectors = new List<SelectorModel>();
         }
 
         public ControllerModel(ControllerModel other)
@@ -57,7 +56,6 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             Application = other.Application;
 
             // These are just metadata, safe to create new collections
-            ActionConstraints = new List<IActionConstraintMetadata>(other.ActionConstraints);
             Attributes = new List<object>(other.Attributes);
             Filters = new List<IFilterMetadata>(other.Filters);
             RouteConstraints = new List<IRouteConstraintProvider>(other.RouteConstraints);
@@ -66,13 +64,10 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             // Make a deep copy of other 'model' types.
             Actions = new List<ActionModel>(other.Actions.Select(a => new ActionModel(a)));
             ApiExplorer = new ApiExplorerModel(other.ApiExplorer);
-            AttributeRoutes = new List<AttributeRouteModel>(
-                other.AttributeRoutes.Select(a => new AttributeRouteModel(a)));
             ControllerProperties =
                 new List<PropertyModel>(other.ControllerProperties.Select(p => new PropertyModel(p)));
+            Selectors = new List<SelectorModel>(other.Selectors.Select(s => new SelectorModel(s)));
         }
-
-        public IList<IActionConstraintMetadata> ActionConstraints { get; private set; }
 
         public IList<ActionModel> Actions { get; private set; }
 
@@ -90,23 +85,19 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 
         public ApplicationModel Application { get; set; }
 
-        public IList<AttributeRouteModel> AttributeRoutes { get; private set; }
-
         public IReadOnlyList<object> Attributes { get; }
-
-        MemberInfo ICommonModel.MemberInfo => ControllerType;
 
         string ICommonModel.Name => ControllerName;
 
         public string ControllerName { get; set; }
+
+        MemberInfo ICommonModel.MemberInfo => ControllerType;
 
         public TypeInfo ControllerType { get; private set; }
 
         public IList<PropertyModel> ControllerProperties { get; }
 
         public IList<IFilterMetadata> Filters { get; private set; }
-
-        public IList<IRouteConstraintProvider> RouteConstraints { get; private set; }
 
         /// <summary>
         /// Gets a set of properties associated with the controller.
@@ -117,5 +108,9 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// in <see cref="ApplicationModel.Properties"/>.
         /// </remarks>
         public IDictionary<object, object> Properties { get; }
+
+        public IList<IRouteConstraintProvider> RouteConstraints { get; private set; }
+
+        public IList<SelectorModel> Selectors { get; }
     }
 }

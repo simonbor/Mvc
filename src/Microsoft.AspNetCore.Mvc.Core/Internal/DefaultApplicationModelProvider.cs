@@ -628,6 +628,145 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return parameterModel;
         }
 
+        private IList<SelectorModel> CreateSelectors(IList<object> attributes)
+        {
+            // Route attributes create multiple actions, we want to split the set of
+            // attributes based on these so each action only has the attributes that affect it.
+            //
+            // The set of route attributes are split into those that 'define' a route versus those that are
+            // 'silent'.
+            //
+            // We need to define an action for each attribute that 'defines' a route, and a single action
+            // for all of the ones that don't (if any exist).
+            //
+            // If the attribute that 'defines' a route is NOT an IActionHttpMethodProvider, then we'll include with
+            // it, any IActionHttpMethodProvider that are 'silent' IRouteTemplateProviders. In this case the 'extra'
+            // action for silent route providers isn't needed.
+            //
+            // Ex:
+            // [HttpGet]
+            // [AcceptVerbs("POST", "PUT")]
+            // [HttpPost("Api/Things")]
+            // public void DoThing()
+            //
+            // This will generate 2 actions:
+            // 1. [HttpPost("Api/Things")]
+            // 2. [HttpGet], [AcceptVerbs("POST", "PUT")]
+            //
+            // Note that having a route attribute that doesn't define a route template _might_ be an error. We
+            // don't have enough context to really know at this point so we just pass it on.
+            var routeProviders = new List<IRouteTemplateProvider>();
+
+            var createActionForSilentRouteProviders = false;
+            foreach (var attribute in attributes)
+            {
+                var routeTemplateProvider = attribute as IRouteTemplateProvider;
+                if (routeTemplateProvider != null)
+                {
+                    if (IsSilentRouteAttribute(routeTemplateProvider))
+                    {
+                        createActionForSilentRouteProviders = true;
+                    }
+                    else
+                    {
+                        routeProviders.Add(routeTemplateProvider);
+                    }
+                }
+            }
+
+            foreach (var routeProvider in routeProviders)
+            {
+                // If we see an attribute like
+                // [Route(...)]
+                //
+                // Then we want to group any attributes like [HttpGet] with it.
+                //
+                // Basically...
+                //
+                // [HttpGet]
+                // [HttpPost("Products")]
+                // public void Foo() { }
+                //
+                // Is two actions. And...
+                //
+                // [HttpGet]
+                // [Route("Products")]
+                // public void Foo() { }
+                //
+                // Is one action.
+                if (!(routeProvider is IActionHttpMethodProvider))
+                {
+                    createActionForSilentRouteProviders = false;
+                }
+            }
+
+            var selectorModels = new List<SelectorModel>();
+            if (routeProviders.Count == 0 && !createActionForSilentRouteProviders)
+            {
+                var httpMethods = 
+
+                selectorModels.Add(new SelectorModel());
+            }
+            else
+            {
+                // Each of these routeProviders are the ones that actually have routing information on them
+                // something like [HttpGet] won't show up here, but [HttpGet("Products")] will.
+                foreach (var routeProvider in routeProviders)
+                {
+                    var filteredAttributes = new List<object>();
+                    foreach (var attribute in attributes)
+                    {
+                        if (attribute == routeProvider)
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                        else if (routeProviders.Contains(attribute))
+                        {
+                            // Exclude other route template providers
+                        }
+                        else if (
+                            routeProvider is IActionHttpMethodProvider &&
+                            attribute is IActionHttpMethodProvider)
+                        {
+                            // Exclude other http method providers if this route is an
+                            // http method provider.
+                        }
+                        else
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                    }
+
+                    var selectorModel = new SelectorModel()
+                    {
+                        AttributeRoute = new AttributeRouteModel(routeProvider),
+                    };
+
+                    AddRange(selectorModel.ActionConstraints, filteredAttributes.OfType<IActionConstraintMetadata>());
+
+                    var httpMethods = 
+
+                    selectorModels.Add(selectorModel);
+                }
+
+                if (createActionForSilentRouteProviders)
+                {
+                    var filteredAttributes = new List<object>();
+                    foreach (var attribute in attributes)
+                    {
+                        if (!routeProviders.Contains(attribute))
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                    }
+
+                    actionModels.Add(CreateActionModel(methodInfo, filteredAttributes));
+                }
+            }
+
+            return actionModels;
+        }
+
         private bool IsIDisposableMethod(MethodInfo methodInfo, TypeInfo typeInfo)
         {
             return
