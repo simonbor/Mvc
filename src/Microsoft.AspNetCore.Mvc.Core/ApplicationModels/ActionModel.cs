@@ -8,13 +8,11 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
-    [DebuggerDisplay("Name={ActionName}({Methods()}), Type={Controller.ControllerType.Name}," +
-                     " Route: {AttributeRouteModel?.Template}, Filters: {Filters.Count}")]
+    [DebuggerDisplay("{Controller.ControllerType.Name}.{ActionMethod.Name}")]
     public class ActionModel : ICommonModel, IFilterModel, IApiExplorerModel
     {
         public ActionModel(
@@ -37,10 +35,10 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             Attributes = new List<object>(attributes);
             ActionConstraints = new List<IActionConstraintMetadata>();
             Filters = new List<IFilterMetadata>();
-            HttpMethods = new List<string>();
             Parameters = new List<ParameterModel>();
             RouteConstraints = new List<IRouteConstraintProvider>();
             Properties = new Dictionary<object, object>();
+            Selectors = new List<SelectorModel>();
         }
 
         public ActionModel(ActionModel other)
@@ -60,18 +58,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             ActionConstraints = new List<IActionConstraintMetadata>(other.ActionConstraints);
             Attributes = new List<object>(other.Attributes);
             Filters = new List<IFilterMetadata>(other.Filters);
-            HttpMethods = new List<string>(other.HttpMethods);
             Properties = new Dictionary<object, object>(other.Properties);
+            RouteConstraints = new List<IRouteConstraintProvider>(other.RouteConstraints);
 
             // Make a deep copy of other 'model' types.
             ApiExplorer = new ApiExplorerModel(other.ApiExplorer);
             Parameters = new List<ParameterModel>(other.Parameters.Select(p => new ParameterModel(p)));
-            RouteConstraints = new List<IRouteConstraintProvider>(other.RouteConstraints);
-
-            if (other.AttributeRouteModel != null)
-            {
-                AttributeRouteModel = new AttributeRouteModel(other.AttributeRouteModel);
-            }
+            Selectors = new List<SelectorModel>(other.Selectors.Select(s => new SelectorModel(s)));
         }
 
         public IList<IActionConstraintMetadata> ActionConstraints { get; private set; }
@@ -92,19 +85,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// </remarks>
         public ApiExplorerModel ApiExplorer { get; set; }
 
-        public AttributeRouteModel AttributeRouteModel { get; set; }
-
         public IReadOnlyList<object> Attributes { get; }
 
         public ControllerModel Controller { get; set; }
 
         public IList<IFilterMetadata> Filters { get; private set; }
 
-        public IList<string> HttpMethods { get; private set; }
-
         public IList<ParameterModel> Parameters { get; private set; }
-
-        public IList<IRouteConstraintProvider> RouteConstraints { get; private set; }
 
         /// <summary>
         /// Gets a set of properties associated with the action.
@@ -116,18 +103,12 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// </remarks>
         public IDictionary<object, object> Properties { get; }
 
+        public IList<IRouteConstraintProvider> RouteConstraints { get; private set; }
+
+        public IList<SelectorModel> Selectors { get; }
+
         MemberInfo ICommonModel.MemberInfo => ActionMethod;
 
         string ICommonModel.Name => ActionName;
-
-        private string Methods()
-        {
-            if (HttpMethods.Count == 0)
-            {
-                return "All";
-            }
-
-            return string.Join(", ", HttpMethods);
-        }
     }
 }
