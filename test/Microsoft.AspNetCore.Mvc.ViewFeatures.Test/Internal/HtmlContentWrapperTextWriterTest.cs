@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             await writer.WriteLineAsync(input4);
 
             // Assert
-            Assert.Equal(new[] { input1, input2, newLine, input3, input4, newLine }, buffer.Values);
+            Assert.Equal(new[] { input1, input2, newLine, input3, input4, newLine }, buffer.Values.ToArray());
         }
 
         [Fact]

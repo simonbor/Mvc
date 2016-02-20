@@ -40,10 +40,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             TargetWriter = BufferedWriter;
         }
 
-        public RazorTextWriter(HtmlContentWrapperTextWriter writer, HtmlEncoder encoder)
+        public RazorTextWriter(HtmlContentWrapperTextWriter writer, ViewBuffer buffer, HtmlEncoder encoder)
         {
             BufferedWriter = writer;
-            Buffer = writer.ContentBuilder;
+            Buffer = buffer;
             HtmlEncoder = encoder;
 
             TargetWriter = BufferedWriter;

@@ -109,9 +109,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             bool invokeViewStarts)
         {
             RazorTextWriter razorTextWriter;
-            if (context.Writer is HtmlContentWrapperTextWriter)
+
+            var htmlContentWrapperTextWriter = context.Writer as HtmlContentWrapperTextWriter;
+            var viewBuffer = htmlContentWrapperTextWriter?.ContentBuilder as ViewBuffer;
+            if (htmlContentWrapperTextWriter != null && viewBuffer != null)
             {
-                razorTextWriter = new RazorTextWriter((HtmlContentWrapperTextWriter)context.Writer, _htmlEncoder);
+                // Just delegate to the existing writer and buffer if we're already buffering.
+                razorTextWriter = new RazorTextWriter(
+                    htmlContentWrapperTextWriter,
+                    viewBuffer,
+                    _htmlEncoder);
             }
             else
             {

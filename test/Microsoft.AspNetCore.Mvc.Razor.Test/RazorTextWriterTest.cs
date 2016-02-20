@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         {
             // Arrange
             var expected = new object[] { "True", "3", "18446744073709551615", "Hello world", "3.14", "2.718", "m" };
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             // Act
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             var expected = new[] { "True", "3", "18446744073709551615", "Hello world", "3.14", "2.718" };
             var unbufferedWriter = new Mock<TextWriter>();
             unbufferedWriter.SetupGet(w => w.Encoding).Returns(Encoding.UTF8);
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(unbufferedWriter.Object, buffer, new HtmlTestEncoder());
             var testClass = new TestClass();
 
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             // Arrange
             var unbufferedWriter = new Mock<TextWriter> { CallBase = true };
             unbufferedWriter.SetupGet(w => w.Encoding).Returns(Encoding.UTF8);
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(unbufferedWriter.Object, buffer, new HtmlTestEncoder());
             var buffer1 = new[] { 'a', 'b', 'c', 'd' };
             var buffer2 = new[] { 'd', 'e', 'f' };
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             // Arrange
             var unbufferedWriter = new Mock<TextWriter>();
             unbufferedWriter.SetupGet(w => w.Encoding).Returns(Encoding.UTF8);
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(unbufferedWriter.Object, buffer, new HtmlTestEncoder());
 
             // Act
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             // Arrange
             var newLine = Environment.NewLine;
             var expected = new List<object> { "False", newLine, "1.1", newLine, "3", newLine };
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             // Act
@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             // Arrange
             var unbufferedWriter = new Mock<TextWriter>();
             unbufferedWriter.SetupGet(w => w.Encoding).Returns(Encoding.UTF8);
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(unbufferedWriter.Object, buffer, new HtmlTestEncoder());
 
             // Act
@@ -169,7 +169,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         {
             // Arrange
             var newLine = Environment.NewLine;
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             // Act
@@ -190,7 +190,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             var input2 = "from";
             var input3 = "ASP";
             var input4 = ".Net";
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             // Act
@@ -209,7 +209,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         {
             // Arrange
             var stringWriter = new StringWriter();
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new RazorTextWriter(stringWriter, buffer, new HtmlTestEncoder());
             writer.Flush();
 

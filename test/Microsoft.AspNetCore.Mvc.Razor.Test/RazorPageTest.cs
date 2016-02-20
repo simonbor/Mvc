@@ -1150,7 +1150,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public async Task Write_WithHtmlString_WritesValueWithoutEncoding()
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), string.Empty);
+            var buffer = new ViewBuffer(new TestViewBufferScope(), string.Empty, pageSize: 32);
             var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             var page = CreatePage(p =>

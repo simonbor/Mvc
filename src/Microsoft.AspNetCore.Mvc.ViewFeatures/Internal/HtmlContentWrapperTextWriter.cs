@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// </summary>
         /// <param name="contentBuilder">The <see cref="IHtmlContentBuilder"/> to write to.</param>
         /// <param name="encoding">The <see cref="System.Text.Encoding"/> in which output is written.</param>
-        public HtmlContentWrapperTextWriter(ViewBuffer contentBuilder, Encoding encoding)
+        public HtmlContentWrapperTextWriter(IHtmlContentBuilder contentBuilder, Encoding encoding)
         {
             if (contentBuilder == null)
             {
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <summary>
         /// The <see cref="IHtmlContentBuilder"/> this <see cref="HtmlContentWrapperTextWriter"/> writes to.
         /// </summary>
-        public ViewBuffer ContentBuilder { get; }
+        public IHtmlContentBuilder ContentBuilder { get; }
 
         /// <inheritdoc />
         public override Encoding Encoding { get; }
@@ -99,11 +99,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <inheritdoc />
         public override void Write(object value)
         {
-            IHtmlContentBuilder builder;
+            IHtmlContentContainer container;
             IHtmlContent content;
-            if ((builder = value as IHtmlContentBuilder) != null)
+            if ((container = value as IHtmlContentContainer) != null)
             {
-                Write(builder);
+                Write(container);
             }
             else if ((content = value as IHtmlContent) != null)
             {

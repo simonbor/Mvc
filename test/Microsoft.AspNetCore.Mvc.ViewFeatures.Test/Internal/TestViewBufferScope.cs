@@ -9,17 +9,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
     public class TestViewBufferScope : IViewBufferScope
     {
-        public const int DefaultBufferSize = 128;
-        private readonly int _bufferSize;
-
-        public TestViewBufferScope(int bufferSize = DefaultBufferSize)
-        {
-            _bufferSize = bufferSize;
-        }
-
         public IList<ViewBufferValue[]> ReturnedBuffers { get; } = new List<ViewBufferValue[]>();
 
-        public ViewBufferValue[] GetSegment() => new ViewBufferValue[_bufferSize];
+        public ViewBufferValue[] GetSegment(int size) => new ViewBufferValue[size];
 
         public void ReturnSegment(ViewBufferValue[] segment)
         {

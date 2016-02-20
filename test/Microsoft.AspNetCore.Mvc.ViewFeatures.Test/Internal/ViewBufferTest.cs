@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void Append_AddsStringRazorValue()
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
 
             // Act
             buffer.Append("Hello world");
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void Append_AddsHtmlContentRazorValue()
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
             var content = new HtmlString("hello-world");
 
             // Act
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void AppendHtml_AddsHtmlStringValues()
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
             var value = "Hello world";
 
             // Act
@@ -67,8 +67,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void Append_CreatesNewPages_WhenCurrentPageIsFull()
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
-            var expected = Enumerable.Range(0, TestViewBufferScope.DefaultBufferSize).Select(i => i.ToString());
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
+            var expected = Enumerable.Range(0, 32).Select(i => i.ToString());
 
             // Act
             foreach (var item in expected)
@@ -92,11 +92,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         [Theory]
         [InlineData(1)]
-        [InlineData(TestViewBufferScope.DefaultBufferSize + 3)]
+        [InlineData(35)]
         public void Clear_ResetsBackingBufferAndIndex(int valuesToWrite)
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
 
             // Act
             for (var i = 0; i < valuesToWrite; i++)
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void WriteTo_WritesRazorValues_ToTextWriter()
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
             var writer = new StringWriter();
 
             // Act
@@ -137,7 +137,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void WriteTo_WritesRazorValuesFromAllBuffers(int valuesToWrite)
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(4), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new StringWriter();
             var expected = string.Join("", Enumerable.Range(0, valuesToWrite).Select(_ => "abc"));
 
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public async Task WriteToAsync_WritesRazorValues_ToTextWriter()
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 128);
             var writer = new StringWriter();
 
             // Act
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public async Task WriteToAsync_WritesRazorValuesFromAllBuffers(int valuesToWrite)
         {
             // Arrange
-            var buffer = new ViewBuffer(new TestViewBufferScope(4), "some-name");
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
             var writer = new StringWriter();
             var expected = string.Join("", Enumerable.Range(0, valuesToWrite).Select(_ => "abc"));
 
@@ -198,10 +198,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void AppendHtml_ViewBuffer_TakesPage_IfOriginalIsEmpty()
         {
             // Arrange
-            var scope = new TestViewBufferScope(4);
+            var scope = new TestViewBufferScope();
 
-            var original = new ViewBuffer(scope, "original");
-            var other = new ViewBuffer(scope, "other");
+            var original = new ViewBuffer(scope, "original", pageSize: 4);
+            var other = new ViewBuffer(scope, "other", pageSize: 4);
 
             other.Append("Hi");
 
@@ -219,10 +219,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void AppendHtml_ViewBuffer_TakesPage_IfCurrentPageInOriginalIsFull()
         {
             // Arrange
-            var scope = new TestViewBufferScope(4);
+            var scope = new TestViewBufferScope();
 
-            var original = new ViewBuffer(scope, "original");
-            var other = new ViewBuffer(scope, "other");
+            var original = new ViewBuffer(scope, "original", pageSize: 4);
+            var other = new ViewBuffer(scope, "other", pageSize: 4);
 
             for (var i = 0; i < 4; i++)
             {
@@ -246,10 +246,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void AppendHtml_ViewBuffer_TakesPage_IfCurrentPageDoesNotHaveCapacity()
         {
             // Arrange
-            var scope = new TestViewBufferScope(4);
+            var scope = new TestViewBufferScope();
 
-            var original = new ViewBuffer(scope, "original");
-            var other = new ViewBuffer(scope, "other");
+            var original = new ViewBuffer(scope, "original", pageSize: 4);
+            var other = new ViewBuffer(scope, "other", pageSize: 4);
 
             for (var i = 0; i < 3; i++)
             {
@@ -278,10 +278,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void AppendHtml_ViewBuffer_CopiesItems_IfCurrentPageHasRoom()
         {
             // Arrange
-            var scope = new TestViewBufferScope(4);
+            var scope = new TestViewBufferScope();
 
-            var original = new ViewBuffer(scope, "original");
-            var other = new ViewBuffer(scope, "other");
+            var original = new ViewBuffer(scope, "original", pageSize: 4);
+            var other = new ViewBuffer(scope, "other", pageSize: 4);
 
             for (var i = 0; i < 2; i++)
             {
@@ -315,10 +315,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void AppendHtml_ViewBuffer_CanAddToTakenPage()
         {
             // Arrange
-            var scope = new TestViewBufferScope(4);
+            var scope = new TestViewBufferScope();
 
-            var original = new ViewBuffer(scope, "original");
-            var other = new ViewBuffer(scope, "other");
+            var original = new ViewBuffer(scope, "original", pageSize: 4);
+            var other = new ViewBuffer(scope, "other", pageSize: 4);
 
             for (var i = 0; i < 3; i++)
             {
@@ -359,10 +359,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void AppendHtml_ViewBuffer_MultiplePages()
         {
             // Arrange
-            var scope = new TestViewBufferScope(4);
+            var scope = new TestViewBufferScope();
 
-            var original = new ViewBuffer(scope, "original");
-            var other = new ViewBuffer(scope, "other");
+            var original = new ViewBuffer(scope, "original", pageSize: 4);
+            var other = new ViewBuffer(scope, "other", pageSize: 4);
 
             for (var i = 0; i < 2; i++)
             {
