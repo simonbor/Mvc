@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.ObjectPool;
 
 namespace UrlHelperSample.Web
 {
@@ -18,7 +20,7 @@ namespace UrlHelperSample.Web
         private readonly AppOptions _options;
 
         public CustomUrlHelper(ActionContext actionContext, AppOptions options)
-            : base(actionContext)
+            : base(actionContext, new DefaultObjectPoolProvider().Create<StringBuilder>())
         {
             _options = options;
         }

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using Moq;
 using Xunit;
 
@@ -971,12 +972,12 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             var context = CreateHttpContext(services, string.Empty);
             var actionContext = CreateActionContext(context);
 
-            return new UrlHelper(actionContext);
+            return new UrlHelper(actionContext, new DefaultObjectPoolProvider().Create<StringBuilder>());
         }
 
         private static UrlHelper CreateUrlHelper(ActionContext context)
         {
-            return new UrlHelper(context);
+            return new UrlHelper(context, new DefaultObjectPoolProvider().Create<StringBuilder>());
         }
 
         private static UrlHelper CreateUrlHelper(string host)
@@ -987,7 +988,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             var actionContext = CreateActionContext(context);
 
-            return new UrlHelper(actionContext);
+            return new UrlHelper(actionContext, new DefaultObjectPoolProvider().Create<StringBuilder>());
         }
 
         private static UrlHelper CreateUrlHelper(string host, string protocol, IRouter router)
@@ -999,7 +1000,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             var actionContext = CreateActionContext(context, router);
 
-            return new UrlHelper(actionContext);
+            return new UrlHelper(actionContext, new DefaultObjectPoolProvider().Create<StringBuilder>());
         }
 
         private static UrlHelper CreateUrlHelper(string appBase, IRouter router)
@@ -1008,7 +1009,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             var context = CreateHttpContext(services, appBase);
             var actionContext = CreateActionContext(context, router);
 
-            return new UrlHelper(actionContext);
+            return new UrlHelper(actionContext, new DefaultObjectPoolProvider().Create<StringBuilder>());
         }
 
         private static UrlHelper CreateUrlHelperWithRouteCollection(

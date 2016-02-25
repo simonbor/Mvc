@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Mvc.Routing
 {
@@ -15,19 +16,28 @@ namespace Microsoft.AspNetCore.Mvc.Routing
     /// </summary>
     public class UrlHelper : IUrlHelper
     {
+        // Pool of string builder objects that will be used for url generation
+        private ObjectPool<StringBuilder> _stringBuilderPool;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified action context and
         /// action selector.
         /// </summary>
         /// <param name="actionContext">The <see cref="Mvc.ActionContext"/> for the current request.</param>
-        public UrlHelper(ActionContext actionContext)
+        public UrlHelper(ActionContext actionContext, ObjectPool<StringBuilder> builderPool)
         {
             if (actionContext == null)
             {
                 throw new ArgumentNullException(nameof(actionContext));
             }
 
+            if (builderPool == null)
+            {
+                throw new ArgumentNullException(nameof(builderPool));
+            }
+
             ActionContext = actionContext;
+            _stringBuilderPool = builderPool;
         }
 
         /// <inheritdoc />
@@ -120,6 +130,22 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             return Router.GetVirtualPath(context);
         }
 
+        /// <summary>
+        /// Clear the builder object and return it to the pool
+        /// </summary>
+        /// <param name="builder"> The builder object to be released and returned to pool</param>
+        protected virtual void ReleaseStringBuilder(StringBuilder builder)
+        {
+            builder.Clear();
+            if (builder.Capacity > 128)
+            {
+                // We don't want to retain too much memory if this is getting pooled.
+                builder.Capacity = 128;
+            }
+
+            _stringBuilderPool.Return(builder);
+        }
+
         // Internal for unit testing.
         internal void AppendPathAndFragment(StringBuilder builder, VirtualPathData pathData, string fragment)
         {
@@ -199,7 +225,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 Protocol = HttpContext.Request.Scheme,
                 Host = HttpContext.Request.Host.ToUriComponent()
             });
-        }
+        }        
 
         /// <summary>
         /// Generates the URL using the specified components.
@@ -219,7 +245,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             // VirtualPathData.VirtualPath returns string.Empty instead of null.
             Debug.Assert(pathData.VirtualPath != null);
 
-            var builder = new StringBuilder();
+            var builder = _stringBuilderPool.Get();
             if (string.IsNullOrEmpty(protocol) && string.IsNullOrEmpty(host))
             {
                 AppendPathAndFragment(builder, pathData, fragment);
@@ -241,7 +267,9 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 AppendPathAndFragment(builder, pathData, fragment);
             }
 
-            return builder.ToString();
+            var path = builder.ToString();
+            ReleaseStringBuilder(builder);
+            return path;
         }
     }
 }

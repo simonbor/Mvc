@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Internal;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.WebEncoders.Testing;
+using Microsoft.Extensions.ObjectPool;
 using Moq;
 using Xunit;
 using Resources = Microsoft.AspNetCore.Mvc.ViewFeatures.Test.Resources;
@@ -958,7 +960,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             var actionContext = GetActionContext(serviceProvider, routeData);
 
-            var urlHelper = new UrlHelper(actionContext);
+            var urlHelper = new UrlHelper(actionContext, new DefaultObjectPoolProvider().Create<StringBuilder>());
             var factory = new Mock<IUrlHelperFactory>(MockBehavior.Strict);
             factory
                 .Setup(f => f.GetUrlHelper(actionContext))
