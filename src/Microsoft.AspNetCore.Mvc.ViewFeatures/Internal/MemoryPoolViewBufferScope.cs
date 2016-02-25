@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// The <see cref="ArrayPool{ViewBufferValue}"/> for creating <see cref="ViewBufferValue"/> instances.
         /// </param>
         /// <param name="charPool">
-        /// The <see cref="ArrayPool{char}"/> for creating <see cref="ViewBufferTextWriter"/> instances.
+        /// The <see cref="ArrayPool{char}"/> for creating <see cref="PagedBufferedTextWriter"/> instances.
         /// </param>
         public MemoryPoolViewBufferScope(ArrayPool<ViewBufferValue> viewBufferPool, ArrayPool<char> charPool)
         {
@@ -96,14 +96,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
-        public ViewBufferTextWriter CreateWriter(TextWriter writer)
+        public PagedBufferedTextWriter CreateWriter(TextWriter writer)
         {
             if (writer == null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            return new ViewBufferTextWriter(_charPool, writer);
+            return new PagedBufferedTextWriter(_charPool, writer);
         }
 
         /// <inheritdoc />

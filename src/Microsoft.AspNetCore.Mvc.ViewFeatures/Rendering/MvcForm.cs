@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.Rendering
 {
@@ -12,20 +14,28 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
     public class MvcForm : IDisposable
     {
         private readonly ViewContext _viewContext;
+        private readonly HtmlEncoder _htmlEncoder;
+
         private bool _disposed;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MvcForm"/>.
         /// </summary>
         /// <param name="viewContext">The <see cref="ViewContext"/>.</param>
-        public MvcForm(ViewContext viewContext)
+        public MvcForm(ViewContext viewContext, HtmlEncoder htmlEncoder)
         {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
+            if (htmlEncoder == null)
+            {
+                throw new ArgumentNullException(nameof(htmlEncoder));
+            }
+
             _viewContext = viewContext;
+            _htmlEncoder = htmlEncoder;
         }
 
         /// <inheritdoc />
@@ -60,12 +70,24 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         private void RenderEndOfFormContent()
         {
             var formContext = _viewContext.FormContext;
-            if (formContext.HasEndOfFormContent)
+            if (!formContext.HasEndOfFormContent)
             {
-                var writer = _viewContext.Writer;
+                return;
+            }
+
+            var viewBufferWriter = _viewContext.Writer as ViewBufferTextWriter;
+            if (viewBufferWriter == null)
+            {
                 foreach (var content in formContext.EndOfFormContent)
                 {
-                    writer.Write(content);
+                    content.WriteTo(_viewContext.Writer, _htmlEncoder);
+                }
+            }
+            else
+            {
+                foreach (var content in formContext.EndOfFormContent)
+                {
+                    viewBufferWriter.Write(content);
                 }
             }
         }

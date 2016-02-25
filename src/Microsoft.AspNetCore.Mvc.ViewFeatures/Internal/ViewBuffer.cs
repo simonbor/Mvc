@@ -62,6 +62,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return this;
             }
 
+            // Text that needs encoding is the uncommon case in views, which is why it
+            // creates a wrapper and pre-encoded text does not.
             AppendValue(new ViewBufferValue(new EncodingWrapper(unencoded)));
             return this;
         }

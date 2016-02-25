@@ -213,7 +213,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </remarks>
         public void StartTagHelperWritingScope(HtmlEncoder encoder)
         {
-            _tagHelperScopes.Push(new TagHelperScopeInfo(HtmlEncoder, ViewContext.Writer));
+            var buffer = new ViewBuffer(BufferScope, Path, pageSize: 16);
+            _tagHelperScopes.Push(new TagHelperScopeInfo(buffer, HtmlEncoder, ViewContext.Writer));
 
             // If passed an HtmlEncoder, override the property.
             if (encoder != null)
@@ -223,9 +224,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             // We need to replace the ViewContext's Writer to ensure that all content (including content written
             // from HTML helpers) is redirected.
-            var buffer = new ViewBuffer(BufferScope, Path, pageSize: 16);
-            var writer = new HtmlContentWrapperTextWriter(buffer, ViewContext.Writer.Encoding);
-            ViewContext.Writer = writer;
+            ViewContext.Writer = new ViewBufferTextWriter(buffer, ViewContext.Writer.Encoding);
         }
 
         /// <summary>
@@ -239,13 +238,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 throw new InvalidOperationException(Resources.RazorPage_ThereIsNoActiveWritingScopeToEnd);
             }
 
+            var scopeInfo = _tagHelperScopes.Pop();
+
             // Get the content written during the current scope.
-            var writer = ViewContext.Writer as HtmlContentWrapperTextWriter;
             var tagHelperContent = new DefaultTagHelperContent();
-            tagHelperContent.AppendHtml(writer?.ContentBuilder);
+            tagHelperContent.AppendHtml(scopeInfo.Buffer);
 
             // Restore previous scope.
-            var scopeInfo = _tagHelperScopes.Pop();
             HtmlEncoder = scopeInfo.Encoder;
             ViewContext.Writer = scopeInfo.Writer;
 
@@ -342,6 +341,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             if (!string.IsNullOrEmpty(value))
             {
+                // Perf: Encode write away instead of writing it character-by-character.
+                // character-by-character isn't efficient when using a writer backed by a ViewBuffer.
                 var encoded = encoder.Encode(value);
                 writer.Write(encoded);
             }
@@ -518,7 +519,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             int attributeValuesCount)
         {
             _tagHelperAttributeInfo = new TagHelperAttributeInfo(executionContext, attributeName, attributeValuesCount);
-            _valueBuffer = null;
         }
 
         public void AddHtmlAttributeValue(
@@ -556,6 +556,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             if (value != null)
             {
+                // Perf: We'll use this buffer for all of the attribute values and then clear it to
+                // reduce allocations.
                 if (_valueBuffer == null)
                 {
                     _valueBuffer = new StringWriter();
@@ -574,9 +576,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             if (!_tagHelperAttributeInfo.Suppressed)
             {
+                // Perf: _valueBuffer might be null if nothing was written. If it is set, clear it so
+                // it is reset for the next value.
                 var content = _valueBuffer == null ? HtmlString.Empty : new HtmlString(_valueBuffer.ToString());
+                _valueBuffer?.GetStringBuilder().Clear();
+
                 executionContext.AddHtmlAttribute(_tagHelperAttributeInfo.Name, content);
-                _valueBuffer.GetStringBuilder().Clear();
             }
         }
 
@@ -992,11 +997,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
         private struct TagHelperScopeInfo
         {
-            public TagHelperScopeInfo(HtmlEncoder encoder, TextWriter writer)
+            public TagHelperScopeInfo(ViewBuffer buffer, HtmlEncoder encoder, TextWriter writer)
             {
+                Buffer = buffer;
                 Encoder = encoder;
                 Writer = writer;
             }
+
+            public ViewBuffer Buffer { get; }
 
             public HtmlEncoder Encoder { get; }
 

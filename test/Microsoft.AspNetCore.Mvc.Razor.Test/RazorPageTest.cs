@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
@@ -1151,7 +1152,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             // Arrange
             var buffer = new ViewBuffer(new TestViewBufferScope(), string.Empty, pageSize: 32);
-            var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
+            var writer = new ViewBufferTextWriter(buffer, Encoding.UTF8);
 
             var page = CreatePage(p =>
             {
@@ -1163,7 +1164,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             await page.ExecuteAsync();
 
             // Assert
-            Assert.Equal("Hello world", HtmlContentUtilities.HtmlContentToString(writer.Buffer));
+            Assert.Equal("Hello world", HtmlContentUtilities.HtmlContentToString(buffer));
         }
 
         private static TestableRazorPage CreatePage(

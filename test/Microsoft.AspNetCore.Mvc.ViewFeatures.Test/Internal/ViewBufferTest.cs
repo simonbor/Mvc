@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     public class ViewBufferTest
     {
         [Fact]
-        public void Append_AddsStringRazorValue()
+        public void Append_AddsEncodingWrapper()
         {
             // Arrange
             var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
@@ -27,11 +27,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Assert
             var page = Assert.Single(buffer.Pages);
             Assert.Equal(1, page.Count);
-            Assert.Equal("Hello world", page.Buffer[0].Value);
+            Assert.IsAssignableFrom<IHtmlContent>(page.Buffer[0].Value);
         }
 
         [Fact]
-        public void Append_AddsHtmlContentRazorValue()
+        public void AppendHtml_AddsHtmlContentRazorValue()
         {
             // Arrange
             var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void AppendHtml_AddsHtmlStringValues()
+        public void AppendHtml_AddsString()
         {
             // Arrange
             var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
@@ -55,6 +55,25 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Act
             buffer.AppendHtml(value);
+
+            // Assert
+            var page = Assert.Single(buffer.Pages);
+            Assert.Equal(1, page.Count);
+            Assert.Equal("Hello world", Assert.IsType<string>(page.Buffer[0].Value));
+        }
+
+        [Fact]
+        public void AppendHtml_FlattensHtmlContentContainers()
+        {
+            // Arrange
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 32);
+
+            var source = new HtmlContentBuilder();
+            var nested = new HtmlContentBuilder();
+            nested.AppendHtml(new HtmlString("Hello world"));
+
+            // Act
+            buffer.AppendHtml(source);
 
             // Assert
             var page = Assert.Single(buffer.Pages);
@@ -73,10 +92,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Act
             foreach (var item in expected)
             {
-                buffer.Append(item);
+                buffer.AppendHtml(item);
             }
-            buffer.Append("Hello");
-            buffer.Append("world");
+            buffer.AppendHtml("Hello");
+            buffer.AppendHtml("world");
 
             // Assert
             Assert.Equal(2, buffer.Pages.Count);
@@ -101,10 +120,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Act
             for (var i = 0; i < valuesToWrite; i++)
             {
-                buffer.Append("Hello");
+                buffer.AppendHtml("Hello");
             }
             buffer.Clear();
-            buffer.Append("world");
+            buffer.AppendHtml("world");
 
             // Assert
             var page = Assert.Single(buffer.Pages);
@@ -126,7 +145,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             buffer.WriteTo(writer, new HtmlTestEncoder());
 
             // Assert
-            Assert.Equal("Hello world 123", writer.ToString());
+            Assert.Equal("HtmlEncode[[Hello]] world 123", writer.ToString());
         }
 
         [Theory]
@@ -167,7 +186,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             await buffer.WriteToAsync(writer, new HtmlTestEncoder());
 
             // Assert
-            Assert.Equal("Hello world 123", writer.ToString());
+            Assert.Equal("HtmlEncode[[Hello]] world 123", writer.ToString());
         }
 
         [Theory]
@@ -195,7 +214,53 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void AppendHtml_ViewBuffer_TakesPage_IfOriginalIsEmpty()
+        public void CopyTo_Flattens()
+        {
+            // Arrange
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
+
+            var nestedItems = new List<object>();
+            var nested = new HtmlContentBuilder(nestedItems);
+            nested.AppendHtml("Hello");
+            buffer.AppendHtml(nested);
+
+            var destinationItems = new List<object>();
+            var destination = new HtmlContentBuilder(destinationItems);
+
+            // Act
+            buffer.CopyTo(destination);
+
+            // Assert
+            Assert.Equal("Hello", Assert.IsType<HtmlEncodedString>(nestedItems[0]).Value);
+            Assert.Equal("Hello", Assert.IsType<HtmlEncodedString>(destinationItems[0]).Value);
+            Assert.Equal("Hello", Assert.IsType<HtmlEncodedString>(buffer.Pages[0].Buffer[0]).Value);
+        }
+
+        [Fact]
+        public void MoveTo_FlattensAndClears()
+        {
+            // Arrange
+            var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name", pageSize: 4);
+
+            var nestedItems = new List<object>();
+            var nested = new HtmlContentBuilder(nestedItems);
+            nested.AppendHtml("Hello");
+            buffer.AppendHtml(nested);
+
+            var destinationItems = new List<object>();
+            var destination = new HtmlContentBuilder(destinationItems);
+
+            // Act
+            buffer.CopyTo(destination);
+
+            // Assert
+            Assert.Empty(nestedItems);
+            Assert.Empty(buffer.Pages);
+            Assert.Equal("Hello", Assert.IsType<HtmlEncodedString>(buffer.Pages[0].Buffer[0]).Value);
+        }
+
+        [Fact]
+        public void MoveTo_ViewBuffer_TakesPage_IfOriginalIsEmpty()
         {
             // Arrange
             var scope = new TestViewBufferScope();
@@ -203,12 +268,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var original = new ViewBuffer(scope, "original", pageSize: 4);
             var other = new ViewBuffer(scope, "other", pageSize: 4);
 
-            other.Append("Hi");
+            other.AppendHtml("Hi");
 
             var page = other.Pages[0];
 
             // Act
-            original.AppendHtml(other);
+            other.MoveTo(original);
 
             // Assert
             Assert.Empty(other.Pages); // Page was taken
@@ -216,7 +281,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void AppendHtml_ViewBuffer_TakesPage_IfCurrentPageInOriginalIsFull()
+        public void MoveTo_ViewBuffer_TakesPage_IfCurrentPageInOriginalIsFull()
         {
             // Arrange
             var scope = new TestViewBufferScope();
@@ -226,15 +291,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             for (var i = 0; i < 4; i++)
             {
-                original.Append($"original-{i}");
+                original.AppendHtml($"original-{i}");
             }
 
-            other.Append("Hi");
+            other.AppendHtml("Hi");
 
             var page = other.Pages[0];
 
             // Act
-            original.AppendHtml(other);
+            other.MoveTo(original);
 
             // Assert
             Assert.Empty(other.Pages); // Page was taken
@@ -243,7 +308,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void AppendHtml_ViewBuffer_TakesPage_IfCurrentPageDoesNotHaveCapacity()
+        public void MoveTo_ViewBuffer_TakesPage_IfCurrentPageDoesNotHaveCapacity()
         {
             // Arrange
             var scope = new TestViewBufferScope();
@@ -253,20 +318,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             for (var i = 0; i < 3; i++)
             {
-                original.Append($"original-{i}");
+                original.AppendHtml($"original-{i}");
             }
 
             // With two items, we'd try to copy the items, but there's no room in the current page.
             // So we just take over the page.
             for (var i = 0; i < 2; i++)
             {
-                other.Append($"other-{i}");
+                other.AppendHtml($"other-{i}");
             }
 
             var page = other.Pages[0];
 
             // Act
-            original.AppendHtml(other);
+            other.MoveTo(original);
 
             // Assert
             Assert.Empty(other.Pages); // Page was taken
@@ -275,7 +340,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void AppendHtml_ViewBuffer_CopiesItems_IfCurrentPageHasRoom()
+        public void MoveTo_ViewBuffer_CopiesItems_IfCurrentPageHasRoom()
         {
             // Arrange
             var scope = new TestViewBufferScope();
@@ -285,19 +350,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             for (var i = 0; i < 2; i++)
             {
-                original.Append($"original-{i}");
+                original.AppendHtml($"original-{i}");
             }
 
             // With two items, this is half full so we try to copy the items.
             for (var i = 0; i < 2; i++)
             {
-                other.Append($"other-{i}");
+                other.AppendHtml($"other-{i}");
             }
 
             var page = other.Pages[0];
 
             // Act
-            original.AppendHtml(other);
+            other.MoveTo(original);
 
             // Assert
             Assert.Empty(other.Pages); // Other is cleared
@@ -312,7 +377,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void AppendHtml_ViewBuffer_CanAddToTakenPage()
+        public void MoveTo_ViewBuffer_CanAddToTakenPage()
         {
             // Arrange
             var scope = new TestViewBufferScope();
@@ -322,20 +387,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             for (var i = 0; i < 3; i++)
             {
-                original.Append($"original-{i}");
+                original.AppendHtml($"original-{i}");
             }
 
             // More than half full, so we take the page
             for (var i = 0; i < 3; i++)
             {
-                other.Append($"other-{i}");
+                other.AppendHtml($"other-{i}");
             }
 
             var page = other.Pages[0];
-            original.AppendHtml(other);
+            other.MoveTo(original);
 
             // Act
-            original.Append("after-merge");
+            original.AppendHtml("after-merge");
 
             // Assert
             Assert.Empty(other.Pages); // Other is cleared
@@ -356,7 +421,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void AppendHtml_ViewBuffer_MultiplePages()
+        public void MoveTo_ViewBuffer_MultiplePages()
         {
             // Arrange
             var scope = new TestViewBufferScope();
@@ -377,7 +442,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var pages = new List<ViewBufferPage>(other.Pages);
 
             // Act
-            original.AppendHtml(other);
+            other.MoveTo(original);
 
             // Assert
             Assert.Empty(other.Pages); // Other is cleared

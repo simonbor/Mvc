@@ -18,9 +18,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             ReturnedBuffers.Add(segment);
         }
 
-        public ViewBufferTextWriter CreateWriter(TextWriter writer)
+        public PagedBufferedTextWriter CreateWriter(TextWriter writer)
         {
-            return new ViewBufferTextWriter(ArrayPool<char>.Shared, writer);
+            return new PagedBufferedTextWriter(ArrayPool<char>.Shared, writer);
         }
     }
 }
